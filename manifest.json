@@ -1,0 +1,51 @@
+{
+  "manifest_version": 3,
+  "name": "eスポーツ大会運営 AI補助ツール",
+  "version": "2.0",
+  "description": "Discordウェブ上の問い合わせ対応をAIで補助するChrome拡張機能（スタッフ専用）",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "identity",
+    "sidePanel"
+  ],
+  "host_permissions": [
+    "https://discord.com/*",
+    "https://generativelanguage.googleapis.com/*",
+    "https://www.googleapis.com/*",
+    "https://docs.googleapis.com/*",
+    "https://drive.googleapis.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://discord.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "side_panel": {
+    "default_path": "sidepanel/sidepanel.html"
+  },
+  "action": {
+    "default_title": "eスポーツ AI補助ツール を開く",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "oauth2": {
+    "client_id": "YOUR_GOOGLE_OAUTH_CLIENT_ID.apps.googleusercontent.com",
+    "scopes": [
+      "https://www.googleapis.com/auth/drive.readonly"
+    ]
+  }
+}

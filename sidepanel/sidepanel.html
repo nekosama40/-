@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>eスポーツ AI補助ツール</title>
+  <link rel="stylesheet" href="sidepanel.css" />
+</head>
+<body>
+  <header class="app-header">
+    <h1 class="app-title">🎮 eスポーツ AI補助ツール</h1>
+    <div class="header-status">
+      <span id="status-badge" class="status-badge status-idle">待機中</span>
+    </div>
+  </header>
+
+  <!-- タブナビゲーション -->
+  <nav class="tab-nav">
+    <button class="tab-btn active" data-tab="generate">💬 返答生成</button>
+    <button class="tab-btn" data-tab="history">📋 履歴</button>
+    <button class="tab-btn" data-tab="settings">⚙️ 設定</button>
+  </nav>
+
+  <!-- 返答生成タブ -->
+  <div id="tab-generate" class="tab-panel active">
+
+    <!-- メッセージ入力セクション -->
+    <section class="panel-section">
+      <div class="section-header">
+        <span class="section-title">問い合わせメッセージ</span>
+        <div class="mode-toggle">
+          <button id="btn-dom-mode" class="mode-btn active" title="Discordから取得">DOM取得</button>
+          <button id="btn-paste-mode" class="mode-btn" title="手動ペースト">ペースト</button>
+        </div>
+      </div>
+
+      <!-- DOM取得モード -->
+      <div id="dom-mode-panel">
+        <div class="action-row">
+          <button id="btn-fetch-messages" class="btn btn-secondary btn-sm">メッセージ取得</button>
+          <button id="btn-toggle-select" class="btn btn-outline btn-sm">クリック選択モード: OFF</button>
+          <button id="btn-clear-select" class="btn btn-ghost btn-sm">選択解除</button>
+        </div>
+        <div id="selected-messages-list" class="message-list">
+          <p class="hint-text">「メッセージ取得」または「クリック選択モード」でメッセージを選択してください。</p>
+        </div>
+      </div>
+
+      <!-- ペーストモード -->
+      <div id="paste-mode-panel" class="hidden">
+        <textarea
+          id="paste-input"
+          class="textarea"
+          placeholder="問い合わせメッセージをここにペーストしてください..."
+          rows="5"
+        ></textarea>
+      </div>
+    </section>
+
+    <!-- 生成ボタン -->
+    <div class="generate-bar">
+      <button id="btn-generate" class="btn btn-primary btn-block">
+        <span id="btn-generate-text">AIで返答案を生成</span>
+        <span id="btn-generate-spinner" class="spinner hidden"></span>
+      </button>
+    </div>
+
+    <!-- 返答案セクション -->
+    <section class="panel-section" id="response-section">
+      <div class="section-header">
+        <span class="section-title">返答案</span>
+        <div class="response-actions">
+          <button id="btn-copy" class="btn btn-ghost btn-sm" title="コピー">コピー</button>
+          <button id="btn-regenerate" class="btn btn-ghost btn-sm" title="再生成">再生成</button>
+        </div>
+      </div>
+
+      <textarea
+        id="response-output"
+        class="textarea response-textarea"
+        placeholder="ここに返答案が表示されます..."
+        rows="8"
+      ></textarea>
+
+      <!-- 根拠FAQ -->
+      <div id="source-faq-section" class="source-faq-section hidden">
+        <p class="source-faq-label">【根拠FAQ】</p>
+        <ul id="source-faq-list" class="source-faq-list"></ul>
+      </div>
+    </section>
+
+    <div id="error-banner" class="error-banner hidden"></div>
+  </div>
+
+  <!-- 履歴タブ -->
+  <div id="tab-history" class="tab-panel hidden">
+    <section class="panel-section">
+      <div class="section-header">
+        <span class="section-title">返答履歴（セッション内）</span>
+        <button id="btn-clear-history" class="btn btn-ghost btn-sm">すべて削除</button>
+      </div>
+      <div id="history-list" class="history-list">
+        <p class="hint-text">まだ返答案を生成していません。</p>
+      </div>
+    </section>
+  </div>
+
+  <!-- 設定タブ -->
+  <div id="tab-settings" class="tab-panel hidden">
+
+    <!-- Gemini APIキー -->
+    <section class="panel-section">
+      <h3 class="section-title">Gemini APIキー</h3>
+      <div class="input-row">
+        <input
+          type="password"
+          id="input-api-key"
+          class="input"
+          placeholder="APIキーを入力..."
+          autocomplete="off"
+        />
+        <button id="btn-save-api-key" class="btn btn-primary btn-sm">保存</button>
+      </div>
+      <p id="api-key-status" class="hint-text"></p>
+      <div class="model-row">
+        <label class="label" for="select-model">モデル</label>
+        <select id="select-model" class="select">
+          <option value="gemini-1.5-flash">Gemini 1.5 Flash（高速）</option>
+          <option value="gemini-1.5-pro">Gemini 1.5 Pro（高精度）</option>
+          <option value="gemini-2.0-flash-exp">Gemini 2.0 Flash（最新実験）</option>
+        </select>
+      </div>
+    </section>
+
+    <!-- 言葉遣い・トーン -->
+    <section class="panel-section">
+      <h3 class="section-title">言葉遣い・返答トーン</h3>
+      <div class="preset-grid">
+        <label class="preset-btn">
+          <input type="radio" name="tone" value="polite" /> 丁寧
+        </label>
+        <label class="preset-btn">
+          <input type="radio" name="tone" value="friendly" /> フレンドリー
+        </label>
+        <label class="preset-btn">
+          <input type="radio" name="tone" value="concise" /> 簡潔
+        </label>
+        <label class="preset-btn">
+          <input type="radio" name="tone" value="casual" /> カジュアル
+        </label>
+      </div>
+      <label class="label" for="custom-instruction">カスタム指示（語尾・禁止ワード・絵文字ルール等）</label>
+      <textarea
+        id="custom-instruction"
+        class="textarea"
+        placeholder="例: 語尾は「〜です」「〜ます」に統一してください。絵文字は使わないでください。"
+        rows="3"
+      ></textarea>
+    </section>
+
+    <!-- 返答の長さ -->
+    <section class="panel-section">
+      <h3 class="section-title">返答の長さ</h3>
+      <div class="length-control">
+        <span class="length-label">短め</span>
+        <input type="range" id="response-length" class="slider" min="0" max="2" step="1" value="1" />
+        <span class="length-label">詳しく</span>
+      </div>
+      <p id="length-display" class="hint-text center">ふつう</p>
+    </section>
+
+    <!-- FAQ文書管理 -->
+    <section class="panel-section">
+      <h3 class="section-title">FAQ・ルール文書（Google Drive）</h3>
+      <div class="input-row">
+        <input
+          type="url"
+          id="input-faq-url"
+          class="input"
+          placeholder="Google DriveのURLを入力..."
+        />
+        <button id="btn-add-faq" class="btn btn-secondary btn-sm">追加</button>
+      </div>
+      <div id="faq-doc-list" class="faq-doc-list">
+        <p class="hint-text">FAQ文書が登録されていません。</p>
+      </div>
+      <button id="btn-drive-auth" class="btn btn-outline btn-block btn-sm">Google Driveと連携</button>
+    </section>
+
+    <!-- 過去チャット参照件数 -->
+    <section class="panel-section">
+      <h3 class="section-title">過去チャット参照</h3>
+      <div class="input-row-inline">
+        <label class="label" for="history-count">参照件数</label>
+        <input type="number" id="history-count" class="input-sm" min="1" max="100" value="20" />
+        <span class="label">件（最大100）</span>
+      </div>
+    </section>
+
+    <!-- 表示オプション -->
+    <section class="panel-section">
+      <h3 class="section-title">表示オプション</h3>
+      <label class="toggle-row">
+        <span>根拠FAQ表示</span>
+        <input type="checkbox" id="toggle-source-faq" class="toggle" checked />
+      </label>
+      <label class="toggle-row">
+        <span>返答履歴を保持</span>
+        <input type="checkbox" id="toggle-keep-history" class="toggle" checked />
+      </label>
+      <label class="toggle-row">
+        <span>ペーストモード表示</span>
+        <input type="checkbox" id="toggle-show-paste" class="toggle" checked />
+      </label>
+    </section>
+
+    <div class="settings-footer">
+      <button id="btn-save-settings" class="btn btn-primary btn-block">設定を保存</button>
+      <p id="settings-save-status" class="hint-text center"></p>
+    </div>
+  </div>
+
+  <script src="sidepanel.js"></script>
+</body>
+</html>
