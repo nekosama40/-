@@ -14,7 +14,8 @@
     "https://generativelanguage.googleapis.com/*",
     "https://www.googleapis.com/*",
     "https://docs.googleapis.com/*",
-    "https://drive.googleapis.com/*"
+    "https://drive.googleapis.com/*",
+    "https://*.aiplatform.googleapis.com/*"
   ],
   "background": {
     "service_worker": "background.js"
@@ -45,7 +46,8 @@
   "oauth2": {
     "client_id": "YOUR_GOOGLE_OAUTH_CLIENT_ID.apps.googleusercontent.com",
     "scopes": [
-      "https://www.googleapis.com/auth/drive.readonly"
+      "https://www.googleapis.com/auth/drive.readonly",
+      "https://www.googleapis.com/auth/cloud-platform"
     ]
   }
 }

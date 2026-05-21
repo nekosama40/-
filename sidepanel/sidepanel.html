@@ -132,6 +132,32 @@
       </div>
     </section>
 
+    <!-- データ保護設定 -->
+    <section class="panel-section">
+      <h3 class="section-title">データ保護設定</h3>
+      <div id="gemini-direct-warning" class="warning-banner">
+        &#9888; Gemini AI Studio直接接続中。APIリクエスト内容がGoogleに保持される場合があります。
+      </div>
+      <label class="toggle-row">
+        <span>Vertex AI使用（データログなし・推奨）</span>
+        <input type="checkbox" id="toggle-vertex-ai" class="toggle" />
+      </label>
+      <div id="vertex-ai-settings" class="hidden">
+        <p class="hint-text success-text">Vertex AIはGoogleの企業向けデータ処理規約が適用され、リクエスト内容が学習に使用されません。</p>
+        <label class="label" for="vertex-project-id">GCPプロジェクトID</label>
+        <input type="text" id="vertex-project-id" class="input" placeholder="your-gcp-project-id" style="margin-top:4px;" />
+        <div class="model-row" style="margin-top:6px;">
+          <label class="label" for="vertex-region">リージョン</label>
+          <select id="vertex-region" class="select">
+            <option value="us-central1">us-central1（推奨）</option>
+            <option value="asia-northeast1">asia-northeast1（東京）</option>
+            <option value="europe-west4">europe-west4</option>
+          </select>
+        </div>
+        <p class="hint-text" style="margin-top:4px;">※ 使用前に「Google Driveと連携」で認証が必要です。</p>
+      </div>
+    </section>
+
     <!-- 言葉遣い・トーン -->
     <section class="panel-section">
       <h3 class="section-title">言葉遣い・返答トーン</h3>

@@ -75,6 +75,13 @@ function applySettings() {
   document.getElementById('toggle-keep-history').checked = s.showHistory !== false;
   document.getElementById('toggle-show-paste').checked = s.showPasteMode !== false;
 
+  // Vertex AI設定
+  const useVertex = s.useVertexAI === true;
+  document.getElementById('toggle-vertex-ai').checked = useVertex;
+  document.getElementById('vertex-project-id').value = s.vertexProjectId || '';
+  document.getElementById('vertex-region').value = s.vertexRegion || 'us-central1';
+  updateVertexAIVisibility(useVertex);
+
   // ペーストモードボタン表示
   updatePasteModeVisibility();
 
@@ -350,6 +357,11 @@ function setupSettingsTab() {
   // 返答長さスライダー
   document.getElementById('response-length').addEventListener('input', updateLengthDisplay);
 
+  // Vertex AIトグル
+  document.getElementById('toggle-vertex-ai').addEventListener('change', (e) => {
+    updateVertexAIVisibility(e.target.checked);
+  });
+
   // FAQ追加
   document.getElementById('btn-add-faq').addEventListener('click', addFaqDoc);
 
@@ -358,6 +370,11 @@ function setupSettingsTab() {
 
   // 設定保存
   document.getElementById('btn-save-settings').addEventListener('click', saveSettings);
+}
+
+function updateVertexAIVisibility(useVertex) {
+  document.getElementById('vertex-ai-settings').classList.toggle('hidden', !useVertex);
+  document.getElementById('gemini-direct-warning').classList.toggle('hidden', useVertex);
 }
 
 async function loadApiKeyStatus() {
@@ -494,6 +511,9 @@ async function saveSettings() {
     showHistory: document.getElementById('toggle-keep-history').checked,
     showPasteMode: document.getElementById('toggle-show-paste').checked,
     faqDocs: state.faqDocs.map(({ url, title, docId }) => ({ url, title, docId })),
+    useVertexAI: document.getElementById('toggle-vertex-ai').checked,
+    vertexProjectId: document.getElementById('vertex-project-id').value.trim(),
+    vertexRegion: document.getElementById('vertex-region').value,
   };
 
   await sendToBackground('SAVE_SETTINGS', { settings });

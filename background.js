@@ -68,9 +68,7 @@ async function getDiscordMessages(tabId, count) {
 async function generateResponse(payload) {
   const { messages, faqTexts, history, settings, pasteText } = payload;
 
-  const { apiKey, model } = await getApiKeyAndModel(settings);
-  if (!apiKey) throw new Error('Gemini APIキーが設定されていません');
-
+  const model = settings?.geminiModel || 'gemini-1.5-flash';
   const systemInstruction = buildSystemInstruction(settings, faqTexts);
   const userContent = buildUserContent(messages, history, pasteText, settings);
 
@@ -83,23 +81,56 @@ async function generateResponse(payload) {
     },
   };
 
+  const result = settings.useVertexAI && settings.vertexProjectId
+    ? await callVertexAI(requestBody, model, settings)
+    : await callGeminiAPI(requestBody, model);
+
+  return { text: result.text, usedFaqs: extractUsedFaqs(result.text, faqTexts) };
+}
+
+// Gemini AI Studio（APIキー認証・データ保持あり）
+async function callGeminiAPI(requestBody, model) {
+  const apiKey = await getApiKey();
+  if (!apiKey) throw new Error('Gemini APIキーが設定されていません');
+
   const url = `${GEMINI_API_BASE}/models/${model}:generateContent?key=${apiKey}`;
   const response = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(requestBody),
   });
+  return parseGeminiResponse(response);
+}
 
+// Vertex AI（OAuth2認証・データログなし）
+async function callVertexAI(requestBody, model, settings) {
+  const { token } = await getAuthToken(false);
+  if (!token) throw new Error('Google認証が必要です。設定タブで「Google連携」を行ってください');
+
+  const project = settings.vertexProjectId;
+  const region = settings.vertexRegion || 'us-central1';
+  const url = `https://${region}-aiplatform.googleapis.com/v1/projects/${project}/locations/${region}/publishers/google/models/${model}:generateContent`;
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify(requestBody),
+  });
+  return parseGeminiResponse(response);
+}
+
+async function parseGeminiResponse(response) {
   if (!response.ok) {
     const err = await response.json().catch(() => ({}));
-    throw new Error(`Gemini APIエラー: ${err?.error?.message || response.status}`);
+    throw new Error(`APIエラー: ${err?.error?.message || response.status}`);
   }
-
   const data = await response.json();
   const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!text) throw new Error('Gemini APIから返答を取得できませんでした');
-
-  return { text, usedFaqs: extractUsedFaqs(text, faqTexts) };
+  if (!text) throw new Error('APIから返答を取得できませんでした');
+  return { text };
 }
 
 function buildSystemInstruction(settings, faqTexts) {
@@ -310,6 +341,9 @@ const DEFAULT_SETTINGS = {
   showPasteMode: true,
   historyCount: 20,
   faqDocs: [],
+  useVertexAI: false,
+  vertexProjectId: '',
+  vertexRegion: 'us-central1',
 };
 
 async function saveSettings(settings) {
